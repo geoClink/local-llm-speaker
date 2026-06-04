@@ -1,0 +1,22 @@
+{
+  "name": "local-llm-speaker",
+  "version": "1.0.0",
+  "description": "Private, offline smart speaker built from scratch. Raspberry Pi 5 brain running Whisper STT, Ollama + Qwen3, and Piper TTS. MCP tools for weather, sports, and BBQ probe. Web dashboard for full control. No cloud. No subscription. No voice data leaving your network.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/geoClink/local-llm-speaker.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/geoClink/local-llm-speaker/issues"
+  },
+  "homepage": "https://github.com/geoClink/local-llm-speaker#readme"
+}
