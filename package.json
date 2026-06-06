@@ -18,5 +18,10 @@
   "bugs": {
     "url": "https://github.com/geoClink/local-llm-speaker/issues"
   },
-  "homepage": "https://github.com/geoClink/local-llm-speaker#readme"
+  "homepage": "https://github.com/geoClink/local-llm-speaker#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "ws": "^8.21.0"
+  }
 }
