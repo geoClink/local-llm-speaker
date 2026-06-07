@@ -35,4 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const query = prompt('Skip to what song?')
         if (query) fetch(`/api/music/skip?query=${encodeURIComponent(query)}`, { method: 'POST' })
     })
+
+    async function loadStatus() {
+        const res = await fetch('/api/status')
+        const data = await res.json()
+        document.getElementById('ram').textContent = `RAM: ${data.ram}`
+        document.getElementById('uptime-detail').textContent = `Uptime: ${data.uptime}`
+        document.getElementById('cpu').textContent = `CPU: ${data.cpu}`
+    }
+
+    loadStatus()
+    setInterval(loadStatus, 10000)
 })

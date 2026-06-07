@@ -18,8 +18,26 @@ const app = express()
 
 const PORT = process.env.PORT || 3000
 
+const os = require('os')
+const osUtils = require('os-utils')
+
 app.use(express.static('public'))
 app.use(express.json())
+
+app.get('/api/status', (req, res) => {
+      osUtils.cpuUsage((cpu) => {
+          const uptime = Math.floor(os.uptime() / 60)
+          const totalMem = os.totalmem()
+          const freeMem = os.freemem()
+          const usedMem = Math.round((totalMem - freeMem) / totalMem * 100)
+          res.json({
+              cpu: `${Math.round(cpu * 100)}%`,
+              uptime: `${uptime} min`,
+              ram: `${usedMem}%`,
+              model: 'Qwen3 4B' 
+          })
+      })
+  })
 
 app.get('/api/weather', async (req, res) => {
     const result = await getWeather(req.query.city || 'detroit')
