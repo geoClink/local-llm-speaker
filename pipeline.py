@@ -207,7 +207,18 @@ if __name__ == "__main__":
         elif "stop" in text.lower() or "pause" in text.lower():
             subprocess.run(["pkill", "-f", "ffplay"])
             print("Music stopped.")
-        else:
+        elif "skip" in text.lower():
+            subprocess.run(["pkill", "-f", "ffplay"])
+            query = text.lower().split("skip", 1)[1].strip() if "skip" in text.lower() and len(text.lower().split("skip", 1)) > 1 else ""
+            if query:
+                subprocess.Popen(
+                    f'yt-dlp -f bestaudio -o - "ytsearch1:{query}" | ffplay -nodisp -autoexit -',
+                    shell=True
+                )
+                print(f"Skipping to: {query}")
+            else:
+                print("Music skipped.")  
+        else:  
             response = ask(text)
             print(f"Response: {response}")
             speak(response)
