@@ -7,6 +7,9 @@ import numpy as np
 
 whisper = WhisperModel("base", device="cpu", compute_type="int8")
 
+messages = [
+      {"role": "system", "content": "You are a voice assistant. When the user asks to play music, you MUST call the music tool — never simulate or pretend. When the user asks about weather or sports, use those tools. Never make up answers for things your tools can handle."}
+  ]
 
 def listen() -> str:
     print("Listening... press Enter to stop")
@@ -21,6 +24,8 @@ def listen() -> str:
     with stream:
         input()
 
+    if not recording:
+        return ""
     audio = np.concatenate(recording)
     wav.write("input.wav", 16000, audio)
     return "input.wav"
@@ -136,17 +141,13 @@ def ask(text: str) -> str:
             },
         },
     ]
+    messages.append({"role": "user", "content": text})
+
     response = requests.post(
         "http://localhost:11434/api/chat",
         json={
             "model": "qwen2.5:3b",
-            "messages": [
-                {
-                    "role": "system",
-                    "content": "You are a voice assistant. When the user asks to play music, you MUST call the music tool — never simulate or pretend. When the user asks about weather or sports, use those tools. Never make up answers for things your tools can handle.",
-                },
-                {"role": "user", "content": text},
-            ],
+            "messages": messages,
             "tools": tools,
             "stream": False,
         },
@@ -173,7 +174,10 @@ def ask(text: str) -> str:
                 "stream": False,
             },
         )
-        return followup.json()["message"]["content"]
+        result = followup.json()["message"]["content"]
+        messages.append({"role": "assistant", "content": result})
+        return result
+    messages.append({"role": "assistant", "content": message["content"]})
     return message["content"]
 
 
@@ -196,34 +200,43 @@ if __name__ == "__main__":
     while True:
         audio_path = listen()
         text = transcribe(audio_path)
+        if not text.strip():
+            continue
         print(f"You said: {text}")
         if "play" in text.lower():
             query = text.lower().split("play", 1)[1].strip()
             print(f"Playing: {query}")
             subprocess.Popen(
                 f'yt-dlp -f bestaudio -o - "ytsearch1:{query}" | ffplay -nodisp -autoexit -',
-                shell=True
+                shell=True,
             )
         elif "stop" in text.lower() or "pause" in text.lower():
             subprocess.run(["pkill", "-f", "ffplay"])
             print("Music stopped.")
         elif "skip" in text.lower():
             subprocess.run(["pkill", "-f", "ffplay"])
-            query = text.lower().split("skip", 1)[1].strip() if "skip" in text.lower() and len(text.lower().split("skip", 1)) > 1 else ""
+            query = (
+                text.lower().split("skip", 1)[1].strip()
+                if "skip" in text.lower() and len(text.lower().split("skip", 1)) > 1
+                else ""
+            )
             if query:
                 subprocess.Popen(
                     f'yt-dlp -f bestaudio -o - "ytsearch1:{query}" | ffplay -nodisp -autoexit -',
-                    shell=True
+                    shell=True,
                 )
                 print(f"Skipping to: {query}")
             else:
-                print("Music skipped.")  
-        else:  
+                print("Music skipped.")
+        else:
             response = ask(text)
             print(f"Response: {response}")
             speak(response)
-            requests.post("http://localhost:3000/api/history", json= {
-                "you": text,
-                "speaker": response,
-                "timestamp": __import__('datetime').datetime.now().isoformat()
-            })
+            requests.post(
+                "http://localhost:3000/api/history",
+                json={
+                    "you": text,
+                    "speaker": response,
+                    "timestamp": __import__("datetime").datetime.now().isoformat(),
+                },
+            )
