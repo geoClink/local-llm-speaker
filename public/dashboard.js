@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('status-text').textContent = 'Offline'
         }
     }
-    checkStatus()
-    setInterval(checkStatus, 30000)
 
     async function loadHistory() {
         const res = await fetch('/api/history')
@@ -24,6 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
         `).join('')
     }
 
+    checkStatus()
+    setInterval(checkStatus, 30000)
     loadHistory()
     setInterval(loadHistory, 3000)
+
+    document.getElementById('btn-pause').addEventListener('click', () => {
+        fetch('/api/music/stop', { method: 'POST' })
+    })
+
+    document.getElementById('btn-skip').addEventListener('click', () => {
+        const query = prompt('Skip to what song?')
+        if (query) fetch(`/api/music/skip?query=${encodeURIComponent(query)}`, { method: 'POST' })
+    })
 })

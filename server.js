@@ -57,6 +57,16 @@ app.get('/api/music', async (req, res) => {
     res.json({ result })
 })
 
+app.post('/api/music/stop', (req, res) => {
+    require('child_process').exec('pkill -f ffplay')
+    res.json({ ok: true })
+})
+
+app.post('/api/music/skip', (req, res) => {
+    require('child_process').exec('pkill -f ffplay')
+    res.json({ ok: true })
+})
+
 app.get('/api/timer', async (req, res) => {
     const result = await setTimer(req.query.minutes)
     logger.info('Tool called', { tool: 'timer', input: req.query.minutes })
