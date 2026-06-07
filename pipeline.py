@@ -1,9 +1,24 @@
 from faster_whisper import WhisperModel
 import requests
 import subprocess
+import sounddevice as sd
+import scipy.io.wavfile as wav
+import numpy as np
 
 whisper = WhisperModel("base", device="cpu", compute_type="int8")
 
+def listen() -> str:
+    print("Listening... press Enter to stop")
+    recording = []
+
+    stream = sd.InputStream(samplerate=16000, channels=1, callback=lambda indata, frames, time, status: recording.append(indata.copy()))
+
+    with stream:
+        input()
+
+    audio = np.concatenate(recording)
+    wav.write("input.wav", 16000, audio)
+    return "input.wav"
 
 def call_tool(tool: str, params: dict = {}) -> str:
     base = "http://localhost:3000/api"
@@ -166,7 +181,8 @@ def speak(text: str) -> None:
 
 
 if __name__ == "__main__":
-    text = transcribe("test.wav")
+    audio_path = listen()
+    text = transcribe(audio_path)
     print(f"You said: {text}")
     response = ask(text)
     print(f"Response: {response}")
