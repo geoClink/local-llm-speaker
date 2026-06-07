@@ -34,3 +34,7 @@ Control everything from any device on your home WiFi:
 
 ## Privacy
 Your voice never leaves the Pi. Only outbound calls are weather/sports data fetches and Meater cook temps — no personal data sent.
+
+ ## Running locally
+Tab 1: node server.js
+Tab 2: source venv/bin/activate && python3 pipeline.py
