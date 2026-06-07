@@ -12,6 +12,8 @@ const { getNews } = require('./tools/news.js')
 const { addItem, getList, clearList } = require('./tools/shopping.js')
 const logger = require('./logger.js')
 
+const history = []
+
 const app = express()
 
 const PORT = process.env.PORT || 3000
@@ -79,6 +81,16 @@ app.delete('/api/shopping', (req, res) => {
     res.json({ result })
 
 })
+
+app.post('/api/history', (req, res) => {
+    history.push(req.body)
+    res.json({ ok: true })
+})
+
+app.get('/api/history', (req, res) => {
+    res.json(history)
+})
+
 const server = http.createServer(app)
 const wss = new WebSocket.Server({ server })
 

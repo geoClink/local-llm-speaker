@@ -222,3 +222,8 @@ if __name__ == "__main__":
             response = ask(text)
             print(f"Response: {response}")
             speak(response)
+            requests.post("http://localhost:3000/api/history", json= {
+                "you": text,
+                "speaker": response,
+                "timestamp": __import__('datetime').datetime.now().isoformat()
+            })

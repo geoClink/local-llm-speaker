@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css">
+        <script defer src="dashboard.js"></script>
+        <title>Local Speaker Dashboard</title>
+    </head>
+
+    <body>
+        <header>
+            <h1>🔊 Local Speaker</h1>
+            <nav>
+                <span id="status-dot" class="dot offline"></span>
+                <span id="status-text">Offline</span>
+                <span id="model-name">Qwen3 4B</span>
+                <span id="uptime">Uptime: --</span>
+            </nav>
+        </header>
+
+        <main>
+            <section class="status">
+                <h2>System Status</h2>
+                <p id="cpu">CPU: --</p>
+                <p id="ram">RAM: --</p>
+                <p id="uptime-detail">Uptime: --</p>
+            </section>
+
+            <section class="conversation">
+                <h2>Conversation History</h2>
+                <div id="history"></div>
+            </section>
+
+            <section class="tools">
+                <h2>Tools</h2>
+                <label><input type="checkbox" id="toggle-weather" checked> Weather</label>
+                <label><input type="checkbox" id="toggle-sports" checked> Sports</label>
+                <label><input type="checkbox" id="toggle-music" checked> Music</label>
+                <label><input type="checkbox" id="toggle-meater" checked> Meater</label>
+                <label><input type="checkbox" id="toggle-news" checked> News</label>
+            </section>
+        </main>
+    </body>
+
+</html>
