@@ -193,17 +193,18 @@ def speak(text: str) -> None:
 
 
 if __name__ == "__main__":
-    audio_path = listen()
-    text = transcribe(audio_path)
-    print(f"You said: {text}")
-    if "play" in text.lower():
-        query = text.lower().split("play", 1)[1].strip()
-        print(f"Playing: {query}")
-        subprocess.Popen(
-            f'yt-dlp -f bestaudio -o - "ytsearch1:{query}" | ffplay -nodisp -autoexit -',
-            shell=True
-        )
-    else:
-        response = ask(text)
-        print(f"Response: {response}")
-        speak(response)
+    while True:
+        audio_path = listen()
+        text = transcribe(audio_path)
+        print(f"You said: {text}")
+        if "play" in text.lower():
+            query = text.lower().split("play", 1)[1].strip()
+            print(f"Playing: {query}")
+            subprocess.Popen(
+                f'yt-dlp -f bestaudio -o - "ytsearch1:{query}" | ffplay -nodisp -autoexit -',
+                shell=True
+            )
+        else:
+            response = ask(text)
+            print(f"Response: {response}")
+            speak(response)
