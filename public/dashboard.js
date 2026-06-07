@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('ram').textContent = `RAM: ${data.ram}`
         document.getElementById('uptime-detail').textContent = `Uptime: ${data.uptime}`
         document.getElementById('cpu').textContent = `CPU: ${data.cpu}`
+        document.getElementById('uptime').textContent = `Uptime: ${data.uptime}`
     }
 
     loadStatus()

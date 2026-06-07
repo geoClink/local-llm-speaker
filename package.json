@@ -20,9 +20,13 @@
   },
   "homepage": "https://github.com/geoClink/local-llm-speaker#readme",
   "dependencies": {
+    "better-sqlite3": "^12.10.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-basic-auth": "^1.2.1",
+    "os-utils": "^0.0.14",
     "rss-parser": "^3.13.0",
+    "winston": "^3.19.0",
     "ws": "^8.21.0"
   }
 }
