@@ -204,6 +204,9 @@ if __name__ == "__main__":
                 f'yt-dlp -f bestaudio -o - "ytsearch1:{query}" | ffplay -nodisp -autoexit -',
                 shell=True
             )
+        elif "stop" in text.lower() or "pause" in text.lower():
+            subprocess.run(["pkill", "-f", "ffplay"])
+            print("Music stopped.")
         else:
             response = ask(text)
             print(f"Response: {response}")
