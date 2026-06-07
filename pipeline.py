@@ -7,11 +7,16 @@ import numpy as np
 
 whisper = WhisperModel("base", device="cpu", compute_type="int8")
 
+
 def listen() -> str:
     print("Listening... press Enter to stop")
     recording = []
 
-    stream = sd.InputStream(samplerate=16000, channels=1, callback=lambda indata, frames, time, status: recording.append(indata.copy()))
+    stream = sd.InputStream(
+        samplerate=16000,
+        channels=1,
+        callback=lambda indata, frames, time, status: recording.append(indata.copy()),
+    )
 
     with stream:
         input()
@@ -19,6 +24,7 @@ def listen() -> str:
     audio = np.concatenate(recording)
     wav.write("input.wav", 16000, audio)
     return "input.wav"
+
 
 def call_tool(tool: str, params: dict = {}) -> str:
     base = "http://localhost:3000/api"
@@ -109,7 +115,7 @@ def ask(text: str) -> str:
             "type": "function",
             "function": {
                 "name": "music",
-                "description": "Call this when the user asks to play music, a song, or an artist.",
+                "description": "ALWAYS call this tool when the user asks to play any song, music, or artist. NEVER pretend to play music. NEVER respond with markdown or fake song output. Call this tool immediately.",
                 "parameters": {
                     "type": "object",
                     "properties": {"query": {"type": "string"}},
@@ -134,7 +140,13 @@ def ask(text: str) -> str:
         "http://localhost:11434/api/chat",
         json={
             "model": "qwen2.5:3b",
-            "messages": [{"role": "user", "content": text}],
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a voice assistant. When the user asks to play music, you MUST call the music tool — never simulate or pretend. When the user asks about weather or sports, use those tools. Never make up answers for things your tools can handle.",
+                },
+                {"role": "user", "content": text},
+            ],
             "tools": tools,
             "stream": False,
         },
@@ -184,6 +196,14 @@ if __name__ == "__main__":
     audio_path = listen()
     text = transcribe(audio_path)
     print(f"You said: {text}")
-    response = ask(text)
-    print(f"Response: {response}")
-    speak(response)
+    if "play" in text.lower():
+        query = text.lower().split("play", 1)[1].strip()
+        print(f"Playing: {query}")
+        subprocess.Popen(
+            f'yt-dlp -f bestaudio -o - "ytsearch1:{query}" | ffplay -nodisp -autoexit -',
+            shell=True
+        )
+    else:
+        response = ask(text)
+        print(f"Response: {response}")
+        speak(response)
