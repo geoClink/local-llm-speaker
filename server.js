@@ -25,7 +25,7 @@ app.get('/api/weather', async (req, res) => {
 
 app.get('/api/sports', async (req, res) => {
     const result = await getScore(req.query.team)
-    res.json({ result })sports
+    res.json({ result })
 })
 
 app.get('/api/joke', async (req, res) => {
