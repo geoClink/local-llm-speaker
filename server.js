@@ -12,8 +12,6 @@ const { getNews } = require('./tools/news.js')
 const { addItem, getList, clearList } = require('./tools/shopping.js')
 const logger = require('./logger.js')
 
-const history = []
-
 const app = express()
 
 const PORT = process.env.PORT || 3000
@@ -23,24 +21,42 @@ const osUtils = require('os-utils')
 
 const auth = require('./middleware/auth.js')
 
+const Database = require('better-sqlite3')
+const db = new Database('history.db')
+
+const history = []
+
+db.exec(`CREATE TABLE IF NOT EXISTS history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    you TEXT,
+    speaker TEXT,
+    timestamp TEXT
+)`)
+
 app.use(express.static('public'))
 app.use(express.json())
-app.use(auth)
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        next()
+    } else {
+        auth(req, res, next)
+    }
+})
 
 app.get('/api/status', (req, res) => {
-      osUtils.cpuUsage((cpu) => {
-          const uptime = Math.floor(os.uptime() / 60)
-          const totalMem = os.totalmem()
-          const freeMem = os.freemem()
-          const usedMem = Math.round((totalMem - freeMem) / totalMem * 100)
-          res.json({
-              cpu: `${Math.round(cpu * 100)}%`,
-              uptime: `${uptime} min`,
-              ram: `${usedMem}%`,
-              model: 'Qwen3 4B' 
-          })
-      })
-  })
+    osUtils.cpuUsage((cpu) => {
+        const uptime = Math.floor(os.uptime() / 60)
+        const totalMem = os.totalmem()
+        const freeMem = os.freemem()
+        const usedMem = Math.round((totalMem - freeMem) / totalMem * 100)
+        res.json({
+            cpu: `${Math.round(cpu * 100)}%`,
+            uptime: `${uptime} min`,
+            ram: `${usedMem}%`,
+            model: 'Qwen3 4B'
+        })
+    })
+})
 
 app.get('/api/weather', async (req, res) => {
     const result = await getWeather(req.query.city || 'detroit')
@@ -107,19 +123,22 @@ app.post('/api/shopping', (req, res) => {
 })
 
 app.delete('/api/shopping', (req, res) => {
-    const result = clearList()
+    const { you, speaker, timestamp } = req.body
     logger.info('Tool called', { tool: 'shopping', input: req.query.shopping })
-    res.json({ result })
+    res.json({ ok: true })
 
 })
 
 app.post('/api/history', (req, res) => {
     history.push(req.body)
+    const { you, speaker, timestamp } = req.body
+    db.prepare('INSERT INTO history (you, speaker, timestamp) VALUES (?, ?, ?)').run(you, speaker, timestamp)
     res.json({ ok: true })
 })
 
 app.get('/api/history', (req, res) => {
-    res.json(history)
+    const rows = db.prepare('SELECT * FROM history ORDER BY id DESC LIMIT 50').all()
+    res.json(rows)
 })
 
 const server = http.createServer(app)

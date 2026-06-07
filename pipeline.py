@@ -4,12 +4,19 @@ import subprocess
 import sounddevice as sd
 import scipy.io.wavfile as wav
 import numpy as np
+import re
 
 whisper = WhisperModel("base", device="cpu", compute_type="int8")
 
 messages = [
-      {"role": "system", "content": "You are a voice assistant. When the user asks to play music, you MUST call the music tool — never simulate or pretend. When the user asks about weather or sports, use those tools. Never make up answers for things your tools can handle."}
+      {"role": "system", "content": "You are a voice assistant. You have tools and you MUST call them — never answer from memory or make up data. Rules: - weather: ALWAYS call when the user asks about weather, temperature, forecast, or conditions in any city. Never guess the weather. - sports: ALWAYS call when the user asks about scores, game results, or if a team won. Never guess scores. - joke: ALWAYS call when the user asks for a joke or something funny. - news: ALWAYS call when the user asks about news, headlines, or what's happening in the world. - meater: ALWAYS call when the user asks about their BBQ, grill, or Meater probe temperature. - music: ALWAYS call when the user asks to play any song, artist, or music. Never pretend to play music. - timer: ALWAYS call when the user asks to set a timer. If a tool exists for the request, calling it is mandatory. Never respond with made-up data."}
   ]
+
+def clean_for_speech(text: str) -> str:
+    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+    text = re.sub(r'\*\*', '', text)
+    text = re.sub(r'[^\x00-\x7F]+', '', text)
+    return text.strip()
 
 def listen() -> str:
     print("Listening... press Enter to stop")
@@ -146,7 +153,8 @@ def ask(text: str) -> str:
     response = requests.post(
         "http://localhost:11434/api/chat",
         json={
-            "model": "qwen2.5:3b",
+            "model": "qwen3:4b",
+            "options": {"think": False},
             "messages": messages,
             "tools": tools,
             "stream": False,
@@ -161,7 +169,8 @@ def ask(text: str) -> str:
         followup = requests.post(
             "http://localhost:11434/api/chat",
             json={
-                "model": "qwen2.5:3b",
+                "model": "qwen3:4b",
+                "options": {"think": False},
                 "messages": [
                     {"role": "user", "content": text},
                     {
@@ -231,7 +240,7 @@ if __name__ == "__main__":
         else:
             response = ask(text)
             print(f"Response: {response}")
-            speak(response)
+            speak(clean_for_speech(response))
             requests.post(
                 "http://localhost:3000/api/history",
                 json={
