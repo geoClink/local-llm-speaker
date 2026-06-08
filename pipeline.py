@@ -12,7 +12,7 @@ whisper.transcribe("input.wav") if __import__("os").path.exists("input.wav") els
 messages = [
     {
         "role": "system",
-        "content": "You are a voice assistant. You have tools and you MUST call them — never answer from memory or make up data. Rules: - weather: ALWAYS call when the user asks about weather, temperature, forecast, or conditions in any city. Never guess the weather. - sports: ALWAYS call when the user asks about scores, game results, or if a team won. Never guess scores. - joke: ALWAYS call when the user asks for a joke or something funny. - news: ALWAYS call when the user asks about news, headlines, or what's happening in the world. - meater: ALWAYS call when the user asks about their BBQ, grill, or Meater probe temperature. - music: ALWAYS call when the user asks to play any song, artist, or music. Never pretend to play music. - timer: ALWAYS call when the user asks to set a timer. If a tool exists for the request, calling it is mandatory. Never respond with made-up data. alarm: ALWAYS call when the user asks to set an alarm for a specific time. Use 24-hour format for hour. - shopping: ALWAYS call when the user asks to add something to the shopping list.",
+        "content": "You are a voice assistant. You have tools and you MUST call them — never answer from memory or make up data. Rules: - weather: ALWAYS call when the user asks about weather, temperature, forecast, or conditions in any city. Never guess the weather. - sports: ALWAYS call when the user asks about scores, game results, or if a team won. Never guess scores. - joke: ALWAYS call when the user asks for a joke or something funny. - news: ALWAYS call when the user asks about news, headlines, or what's happening in the world. - meater: ALWAYS call when the user asks about their BBQ, grill, or Meater probe temperature. - music: ALWAYS call when the user asks to play any song, artist, or music. Never pretend to play music. - timer: ALWAYS call when the user asks to set a timer. If a tool exists for the request, calling it is mandatory. Never respond with made-up data. alarm: ALWAYS call when the user asks to set an alarm for a specific time. Use 24-hour format for hour. - shopping: ALWAYS call when the user asks to add something to the shopping list. - briefing: Call this when the user says good morning or asks for a daily briefing. Keep the response short and conversational — 2-3 sentences max, no markdown, no lists.",
     }
 ]
 
@@ -56,6 +56,7 @@ def call_tool(tool: str, params: dict = {}) -> str:
         "timer": f"{base}/timer",
         "alarm": f"{base}/alarm",
         "shopping": f"{base}/shopping",
+        "briefing": f"{base}/briefing"
     }
 
     url = routes.get(tool)
@@ -90,6 +91,20 @@ def ask(text: str) -> str:
                     "required": ["city"],
                 },
             },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "briefing",
+                "description": "Call this when the user says good morning or asks for a daily briefing",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+
+                    },
+                    "required": []
+                }
+            }
         },
         {
             "type": "function",

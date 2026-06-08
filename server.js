@@ -80,6 +80,14 @@ app.get('/api/alarm', async (req,res) => {
         logger.info('Tool called', { tool: 'alarm', input: req.query.hour })
 })
 
+app.get('/api/briefing', async (req, res) => {
+    const [weather, news] = await Promise.all([
+        getWeather('detroit'),
+        getNews()
+    ])
+    res.json({ result: `Weather: ${weather}\n\nNews: ${news}`})
+})
+
 app.get('/api/weather', async (req, res) => {
     const result = await getWeather(req.query.city || 'detroit')
     logger.info('Tool called', { tool: 'weather', input: req.query.city, result })
