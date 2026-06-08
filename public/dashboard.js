@@ -1,31 +1,40 @@
-const ws = new WebSocket(`ws://${location.host}`)
 let timerInterval = null
 
-ws.onmessage = (event) => {
-    const data = JSON.parse(event.data)
-    if (data.type === 'timer') {
-        let secondsLeft = data.minutes * 60
+function connectWS() {
+    const ws = new WebSocket(`ws://${location.host}`)
 
-        timerInterval = setInterval(() => {
-            secondsLeft--
-            document.getElementById('timer-display').textContent = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        if (data.type === 'timer') {
+            let secondsLeft = data.minutes * 60
 
-            if (secondsLeft === 0) {
-                clearInterval(timerInterval)
-                alert('Timer done!')
-            }
-        }, 1000)
-    } else if (data.type === 'alarm') {
-        alert('Alarm!')
-        document.getElementById('alarm-display').textContent = `--:--`
-    } else if (data.type === 'alarm-cancel') {
-        document.getElementById('alarm-display').textContent = '--:--'
-    } else if (data.type === 'alarm-set') {
-        document.getElementById('alarm-display').textContent = `Alarm set for ${data.hour}:${String(data.minute).padStart(2, '0')}`
-    } else if (data.type === 'shopping') {
-        loadShoppingItems() 
+            timerInterval = setInterval(() => {
+                secondsLeft--
+                document.getElementById('timer-display').textContent = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`
+
+                if (secondsLeft === 0) {
+                    clearInterval(timerInterval)
+                    alert('Timer done!')
+                }
+            }, 1000)
+        } else if (data.type === 'alarm') {
+            alert('Alarm!')
+            document.getElementById('alarm-display').textContent = `--:--`
+        } else if (data.type === 'alarm-cancel') {
+            document.getElementById('alarm-display').textContent = '--:--'
+        } else if (data.type === 'alarm-set') {
+            document.getElementById('alarm-display').textContent = `Alarm set for ${data.hour}:${String(data.minute).padStart(2, '0')}`
+        } else if (data.type === 'shopping') {
+            loadShoppingItems()
+        } else if (data.type === 'now-playing') {
+            document.getElementById('now-playing').textContent = `${data.song}`
+        }
     }
+
+    ws.onclose = () => setTimeout(connectWS, 3000)
 }
+
+connectWS()
 
 document.addEventListener('DOMContentLoaded', () => {
     async function checkStatus() {
