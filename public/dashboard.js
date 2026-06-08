@@ -2,8 +2,9 @@ let timerInterval = null
 
 function connectWS() {
     const ws = new WebSocket(`ws://${location.host}`)
-
+    ws.onopen = () => console.log('WS connected')
     ws.onmessage = (event) => {
+        console.log('WS message received:', event.data)
         const data = JSON.parse(event.data)
         if (data.type === 'timer') {
             let secondsLeft = data.minutes * 60

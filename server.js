@@ -122,6 +122,11 @@ app.get('/api/music', async (req, res) => {
     const result = await playMusic(req.query.query)
     logger.info('Tool called', { tool: 'music', input: req.query.music })
     res.json({ result })
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'now-playing', song: req.query.query }))
+        }
+    })
 })
 
 app.post('/api/music/stop', (req, res) => {
@@ -138,6 +143,7 @@ app.get('/api/timer', async (req, res) => {
     const result = await setTimer(req.query.minutes)
     logger.info('Tool called', { tool: 'timer', input: req.query.minutes })
     res.json({ result })
+    console.log('clients at broadcast:', wss.clients.size)
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) {
             client.send(JSON.stringify({ type: "timer", minutes: req.query.minutes }))
