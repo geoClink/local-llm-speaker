@@ -137,3 +137,10 @@ button:hover {
     border-color: var(--accent);
     color: var(--accent);
 }
+
+@media (max-width: 600px) {
+    main {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+}
