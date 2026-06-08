@@ -147,6 +147,13 @@ app.post('/api/shopping', (req, res) => {
     const result = addItem(req.body.item)
     logger.info('Tool called', { tool: 'shopping', input: req.query.shopping })
     res.json({ result })
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'shopping'
+            }))
+        }
+    })
 })
 
 app.delete('/api/shopping', (req, res) => {

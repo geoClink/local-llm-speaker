@@ -7,11 +7,12 @@ import numpy as np
 import re
 
 whisper = WhisperModel("base", device="cpu", compute_type="int8")
+whisper.transcribe("input.wav") if __import__("os").path.exists("input.wav") else None
 
 messages = [
     {
         "role": "system",
-        "content": "You are a voice assistant. You have tools and you MUST call them — never answer from memory or make up data. Rules: - weather: ALWAYS call when the user asks about weather, temperature, forecast, or conditions in any city. Never guess the weather. - sports: ALWAYS call when the user asks about scores, game results, or if a team won. Never guess scores. - joke: ALWAYS call when the user asks for a joke or something funny. - news: ALWAYS call when the user asks about news, headlines, or what's happening in the world. - meater: ALWAYS call when the user asks about their BBQ, grill, or Meater probe temperature. - music: ALWAYS call when the user asks to play any song, artist, or music. Never pretend to play music. - timer: ALWAYS call when the user asks to set a timer. If a tool exists for the request, calling it is mandatory. Never respond with made-up data. alarm: ALWAYS call when the user asks to set an alarm for a specific time. Use 24-hour format for hour.",
+        "content": "You are a voice assistant. You have tools and you MUST call them — never answer from memory or make up data. Rules: - weather: ALWAYS call when the user asks about weather, temperature, forecast, or conditions in any city. Never guess the weather. - sports: ALWAYS call when the user asks about scores, game results, or if a team won. Never guess scores. - joke: ALWAYS call when the user asks for a joke or something funny. - news: ALWAYS call when the user asks about news, headlines, or what's happening in the world. - meater: ALWAYS call when the user asks about their BBQ, grill, or Meater probe temperature. - music: ALWAYS call when the user asks to play any song, artist, or music. Never pretend to play music. - timer: ALWAYS call when the user asks to set a timer. If a tool exists for the request, calling it is mandatory. Never respond with made-up data. alarm: ALWAYS call when the user asks to set an alarm for a specific time. Use 24-hour format for hour. - shopping: ALWAYS call when the user asks to add something to the shopping list.",
     }
 ]
 
@@ -54,14 +55,20 @@ def call_tool(tool: str, params: dict = {}) -> str:
         "music": f"{base}/music",
         "timer": f"{base}/timer",
         "alarm": f"{base}/alarm",
+        "shopping": f"{base}/shopping",
     }
 
     url = routes.get(tool)
     if not url:
         return f"Unknown tool: {tool}"
-    response = requests.get(url, params=params)
-    return response.json().get("result", "No result")
-
+    if tool == 'shopping':
+        response = requests.post(url, json={"item": params.get("item")}, headers={'Content-Type': 'application/json'})
+    else: 
+        response = requests.get(url, params=params)
+    result = response.json().get("result", "No result")
+    if isinstance(result, list):
+        return ", ".join(result) if result else "Done"
+    return result
 
 def transcribe(audio_path: str) -> str:
     segments, _ = whisper.transcribe(audio_path)
@@ -168,6 +175,20 @@ def ask(text: str) -> str:
                 },
             },
         },
+        {
+            "type": "function",
+            "function": {
+                "name": "shopping",
+                "description": "Call this when the user asks to add an item to their shopping list.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "item": {"type": "string"},
+                    },
+                    "required": ["item"],
+                },
+            },
+        },
     ]
     messages.append({"role": "user", "content": text})
 
@@ -229,6 +250,8 @@ def speak(text: str) -> None:
 if __name__ == "__main__":
     while True:
         audio_path = listen()
+        if not audio_path:
+            continue
         text = transcribe(audio_path)
         if not text.strip():
             continue

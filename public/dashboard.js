@@ -22,6 +22,8 @@ ws.onmessage = (event) => {
         document.getElementById('alarm-display').textContent = '--:--'
     } else if (data.type === 'alarm-set') {
         document.getElementById('alarm-display').textContent = `Alarm set for ${data.hour}:${String(data.minute).padStart(2, '0')}`
+    } else if (data.type === 'shopping') {
+        loadShoppingItems() 
     }
 }
 
