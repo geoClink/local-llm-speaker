@@ -1,7 +1,34 @@
+const ws = new WebSocket(`ws://${location.host}`)
+let timerInterval = null
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data)
+    if (data.type === 'timer') {
+        let secondsLeft = data.minutes * 60
+
+        timerInterval = setInterval(() => {
+            secondsLeft--
+            document.getElementById('timer-display').textContent = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')}`
+
+            if (secondsLeft === 0) {
+                clearInterval(timerInterval)
+                alert('Timer done!')
+            }
+        }, 1000)
+    } else if (data.type === 'alarm') {
+        alert('Alarm!')
+        document.getElementById('alarm-display').textContent = `--:--`
+    } else if (data.type === 'alarm-cancel') {
+        document.getElementById('alarm-display').textContent = '--:--'
+    } else if (data.type === 'alarm-set') {
+        document.getElementById('alarm-display').textContent = `Alarm set for ${data.hour}:${String(data.minute).padStart(2, '0')}`
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     async function checkStatus() {
         try {
-            await fetch('/api/weather?city=detroit')
+            await fetch('/api/status')
             document.getElementById('status-dot').className = 'dot online'
             document.getElementById('status-text').textContent = 'Online'
         } catch {
@@ -34,6 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-skip').addEventListener('click', () => {
         const query = prompt('Skip to what song?')
         if (query) fetch(`/api/music/skip?query=${encodeURIComponent(query)}`, { method: 'POST' })
+    })
+    document.getElementById('btn-cancel-timer').addEventListener('click', () => {
+        clearInterval(timerInterval)
+        document.getElementById('timer-display').textContent = '--:--'
+    })
+    document.getElementById('btn-cancel-alarm').addEventListener('click', () => {
+        fetch('/api/alarm/cancel', { method: 'POST' })
     })
 
     async function loadStatus() {
