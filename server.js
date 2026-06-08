@@ -2,6 +2,7 @@ const express = require('express')
 const http = require('http')
 const WebSocket = require('ws')
 require('dotenv').config()
+const { setAlarm } = require('./tools/alarm.js')
 const { getWeather } = require('./tools/weather.js')
 const { getScore } = require('./tools/sports.js')
 const { getMeaterStatus } = require('./tools/meater.js')
@@ -25,6 +26,7 @@ const Database = require('better-sqlite3')
 const db = new Database('history.db')
 
 const history = []
+let alarmTimeout = null
 
 db.exec(`CREATE TABLE IF NOT EXISTS history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +38,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS history (
 app.use(express.static('public'))
 app.use(express.json())
 app.use((req, res, next) => {
-    if (req.path.startsWith('/api/')) {
+    if (req.path.startsWith('/api/') || req.headers.upgrade === 'websocket') {
         next()
     } else {
         auth(req, res, next)
@@ -56,6 +58,26 @@ app.get('/api/status', (req, res) => {
             model: 'Qwen3 4B'
         })
     })
+})
+
+app.get('/api/alarm', async (req,res) => {
+    const alarm = setAlarm(req.query.hour, req.query.minute, () => {
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: "alarm", hour: req.query.hour, minute: req.query.minute }))
+            }
+        })
+    })
+    alarmTimeout = alarm.timeOutId
+    logger.info('Tool called', { tool: 'alarm',
+        input: req.query.hour })
+        res.json({ result: alarm.message })
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: "alarm-set", hour: req.query.hour, minute: req.query.minute }))
+            }
+        })
+        logger.info('Tool called', { tool: 'alarm', input: req.query.hour })
 })
 
 app.get('/api/weather', async (req, res) => {
@@ -108,6 +130,11 @@ app.get('/api/timer', async (req, res) => {
     const result = await setTimer(req.query.minutes)
     logger.info('Tool called', { tool: 'timer', input: req.query.minutes })
     res.json({ result })
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: "timer", minutes: req.query.minutes }))
+        }
+    })
 })
 
 app.get('/api/shopping', async (req, res) => {

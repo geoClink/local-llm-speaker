@@ -9,14 +9,19 @@ import re
 whisper = WhisperModel("base", device="cpu", compute_type="int8")
 
 messages = [
-      {"role": "system", "content": "You are a voice assistant. You have tools and you MUST call them — never answer from memory or make up data. Rules: - weather: ALWAYS call when the user asks about weather, temperature, forecast, or conditions in any city. Never guess the weather. - sports: ALWAYS call when the user asks about scores, game results, or if a team won. Never guess scores. - joke: ALWAYS call when the user asks for a joke or something funny. - news: ALWAYS call when the user asks about news, headlines, or what's happening in the world. - meater: ALWAYS call when the user asks about their BBQ, grill, or Meater probe temperature. - music: ALWAYS call when the user asks to play any song, artist, or music. Never pretend to play music. - timer: ALWAYS call when the user asks to set a timer. If a tool exists for the request, calling it is mandatory. Never respond with made-up data."}
-  ]
+    {
+        "role": "system",
+        "content": "You are a voice assistant. You have tools and you MUST call them — never answer from memory or make up data. Rules: - weather: ALWAYS call when the user asks about weather, temperature, forecast, or conditions in any city. Never guess the weather. - sports: ALWAYS call when the user asks about scores, game results, or if a team won. Never guess scores. - joke: ALWAYS call when the user asks for a joke or something funny. - news: ALWAYS call when the user asks about news, headlines, or what's happening in the world. - meater: ALWAYS call when the user asks about their BBQ, grill, or Meater probe temperature. - music: ALWAYS call when the user asks to play any song, artist, or music. Never pretend to play music. - timer: ALWAYS call when the user asks to set a timer. If a tool exists for the request, calling it is mandatory. Never respond with made-up data. alarm: ALWAYS call when the user asks to set an alarm for a specific time. Use 24-hour format for hour.",
+    }
+]
+
 
 def clean_for_speech(text: str) -> str:
-    text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
-    text = re.sub(r'\*\*', '', text)
-    text = re.sub(r'[^\x00-\x7F]+', '', text)
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL)
+    text = re.sub(r"\*\*", "", text)
+    text = re.sub(r"[^\x00-\x7F]+", "", text)
     return text.strip()
+
 
 def listen() -> str:
     print("Listening... press Enter to stop")
@@ -48,6 +53,7 @@ def call_tool(tool: str, params: dict = {}) -> str:
         "meater": f"{base}/meater",
         "music": f"{base}/music",
         "timer": f"{base}/timer",
+        "alarm": f"{base}/alarm",
     }
 
     url = routes.get(tool)
@@ -144,6 +150,21 @@ def ask(text: str) -> str:
                     "type": "object",
                     "properties": {"minutes": {"type": "number"}},
                     "required": ["minutes"],
+                },
+            },
+        },
+        {
+            "type": "function",
+            "function": {
+                "name": "alarm",
+                "description": "Call this when the user asks to set an alarm.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "hour": {"type": "number"},
+                        "minute": {"type": "number"},
+                    },
+                    "required": ["hour", "minute"],
                 },
             },
         },
