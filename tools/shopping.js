@@ -10,7 +10,7 @@ function addItem(item) {
 
 function getList() {
     const list = fs.existsSync(LIST_PATH) ? JSON.parse(fs.readFileSync(LIST_PATH)) : []
-    return list.length ? `Your list: ${list.join(`, `)}` : "Your shopping list is empty."
+    return list
 }
 
 function clearList() {

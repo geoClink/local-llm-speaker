@@ -150,8 +150,7 @@ app.post('/api/shopping', (req, res) => {
 })
 
 app.delete('/api/shopping', (req, res) => {
-    const { you, speaker, timestamp } = req.body
-    logger.info('Tool called', { tool: 'shopping', input: req.query.shopping })
+    clearList()
     res.json({ ok: true })
 
 })

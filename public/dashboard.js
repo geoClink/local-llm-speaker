@@ -81,4 +81,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadStatus()
     setInterval(loadStatus, 10000)
+
+    async function loadShoppingItems() {
+        const res = await fetch('/api/shopping')
+        const data = await res.json()
+        document.getElementById('shopping-list-items').innerHTML = data.result.map(item => `<li>${item}</li>`).join('')
+    }
+
+    loadShoppingItems()
+    document.getElementById('add-shopping-items').addEventListener('click', () => {
+        const item = document.getElementById('list-input').value
+        fetch('/api/shopping', { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item })
+        })
+        loadShoppingItems()
+    })
+    document.getElementById('clear-shopping-list').addEventListener('click', () => {
+        fetch('/api/shopping', { method: 'DELETE' }).then(() => loadShoppingItems())
+    })
 })
